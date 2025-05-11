@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using EventEase.Data;
 using EventEase.Models;
+using EventEase.ViewModels;
 
 namespace EventEase.Controllers
 {
@@ -25,6 +26,8 @@ namespace EventEase.Controllers
             var applicationDbContext = _context.Bookings.Include(b => b.Event).Include(b => b.Venue);
             return View(await applicationDbContext.ToListAsync());
         }
+
+
 
         // GET: Bookings/Details/5
         public async Task<IActionResult> Details(int? id)
@@ -142,6 +145,31 @@ namespace EventEase.Controllers
 
             return View(booking);
         }
+
+        public async Task<IActionResult> BookingSummary(string searchString)
+        {
+            var bookings = from b in _context.Bookings
+                           join e in _context.Events on b.EventId equals e.EventId
+                           join v in _context.Venues on b.VenueId equals v.VenueId
+                           select new BookingViewModel
+                           {
+                               BookingId = b.BookingId,
+                               EventName = e.EventName,
+                               EventDate = e.EventDate,
+                               VenueName = v.VenueName,
+                               VenueLocation = v.Location
+                           };
+
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                bookings = bookings.Where(b =>
+                    b.EventName.Contains(searchString) ||
+                    b.BookingId.ToString().Contains(searchString));
+            }
+
+            return View(await bookings.ToListAsync());
+        }
+
 
         // POST: Bookings/Delete/5
         [HttpPost, ActionName("Delete")]
