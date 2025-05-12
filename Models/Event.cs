@@ -5,7 +5,7 @@
         public int EventId { get; set; }
         public string EventName { get; set; } = string.Empty;
         public DateTime EventDate { get; set; }
-        public string? Description { get; set; }
+        public string Description { get; set; }
 
         // Foreign key
         public int VenueId { get; set; }

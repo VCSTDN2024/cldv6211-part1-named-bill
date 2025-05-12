@@ -139,19 +139,29 @@ namespace EventEase.Controllers
         }
 
         // POST: Events/Delete/5
+        // POST: Events/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var @event = await _context.Events.FindAsync(id);
-            if (@event != null)
+            var evnt = await _context.Events
+                .Include(e => e.Bookings)
+                .FirstOrDefaultAsync(e => e.EventId == id);
+
+            if (evnt == null)
+                return NotFound();
+
+            if (evnt.Bookings.Any())
             {
-                _context.Events.Remove(@event);
+                TempData["Error"] = "You cannot delete this event because it is associated with active bookings.";
+                return RedirectToAction(nameof(Index));
             }
 
+            _context.Events.Remove(evnt);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
+
 
         private bool EventExists(int id)
         {
